@@ -1,6 +1,6 @@
 <h2 align="center">
 <br>
-<img src="images/PandaCommandCore.png" alt="Panda Command Core" width="600">
+<img src="Images/Logo.png" alt="Panda Command Core" width="600">
 <br>
 </h2>
 
@@ -24,14 +24,14 @@
 # Maven
 ```
 <repository>
-    <id>pandacommandcore</id>
-    <url>https://maven.pkg.github.com/closeplanet2/PandaCommandCore</url>
+    <id>pulsecommands</id>
+    <url>https://maven.pkg.github.com/closeplanet2/PulseCommands</url>
 </repository>
 ```
 ```
 <dependency>
-  <groupId>com.closeplanet2</groupId>
-  <artifactId>pandacommandcore</artifactId>
-  <version>1.0.0-beta</version>
+  <groupId>com.pandapulsestudios</groupId>
+  <artifactId>pulsecommands</artifactId>
+  <version>1.0.0-a</version>
 </dependency>
 ```
