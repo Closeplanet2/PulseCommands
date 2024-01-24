@@ -5,16 +5,13 @@ import com.pandapulsestudios.pulsecommands.Enums.TabType;
 import com.pandapulsestudios.pulsecommands.Interface.*;
 import com.pandapulsestudios.pulsecommands.PlayerCommand;
 import com.pandapulsestudios.pulsecommands.SignatureBuilder;
+import com.pandapulsestudios.pulsecommands.Static.StaticList;
+import com.pandapulsestudios.pulsecore.Data.API.PlayerDataAPI;
+import com.pandapulsestudios.pulsecore.Data.API.ServerDataAPI;
+import com.pandapulsestudios.pulsecore.Data.API.VariableAPI;
+import com.pandapulsestudios.pulsecore.Player.Enums.PlayerAction;
 import com.pandapulsestudios.pulsecore.Player.PlayerAPI;
-import com.pandapulsestudios.pulsecore.Player.ToggleActions;
-import com.pandapulsestudios.pulsecore.StoredData.PlayerDataAPI;
-import com.pandapulsestudios.pulsecore.StoredData.ServerDataAPI;
-import com.pandapulsestudios.pulsevariable.API.PulseVarAPI;
-import com.pandapulsestudios.pulsevariable.PulseVariable;
-import com.pandapulsestudios.pulsevariable.VAR_TESTS.STATIC_TESTS.StaticList;
-import com.pandapulsestudios.pulsevariable.VAR_TESTS.STATIC_TESTS.StaticString;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
@@ -24,172 +21,140 @@ import java.util.*;
 public class CustomPlayerMethod {
     private final PlayerCommand playerCommand;
     private final Method method;
-    private final boolean toLower;
 
-    public CustomPlayerMethod(PlayerCommand playerCommand, Method method, boolean toLower){
+    public CustomPlayerMethod(PlayerCommand playerCommand, Method method){
         this.playerCommand = playerCommand;
         this.method = method;
-        this.toLower = toLower;
     }
 
     public PlayerCommandError TryAndInvokeMethod(Player player, String[] player_args){
+        if(!CanPlayerUseCommand(player)) return PlayerCommandError.PlayerCommandsLocked;
+        if(method.getParameterTypes().length < 1) return PlayerCommandError.FirstMethodParamMustBeUUID;
 
-        if(!CanPlayerUseCommand(player)){
-            return PlayerCommandError.PLAYER_COMMANDS_LOCKED;
-        }
+        var commandSignature = SignatureBuilder.ReturnSignature(method);
+        if(player_args.length < commandSignature.size()) return PlayerCommandError.PlayerInputDifferentCommandSing;
+        for(var i = 0; i < commandSignature.size(); i++) if(!commandSignature.get(i).equals(player_args[i])) return PlayerCommandError.PlayerInputDifferentCommandSing;
 
-        var command_sig = SignatureBuilder.RETURN_SIGNATURE(method);
-        var method_param = method.getParameterTypes();
+        var serialisedPlayerInput = new ArrayList<String>(Arrays.asList(player_args).subList(commandSignature.size(), player_args.length));
+        var methodParameterTypes = method.getParameterTypes();
+        var isLastParamArray = methodParameterTypes.length > 1 && methodParameterTypes[methodParameterTypes.length - 1].isArray();
 
-        var is_last_param_array = method_param[method_param.length - 1].isArray();
-        if(!(player_args.length == (command_sig.size() + method_param.length - 1)) && !is_last_param_array)
-            return PlayerCommandError.COMMAND_CANNOT_BE_INVOKED_WITH_PROVIDED_ARGUMENTS;
-        if(!(player_args.length >= (command_sig.size() + method_param.length - 1)) && is_last_param_array)
-            return PlayerCommandError.COMMAND_CANNOT_BE_INVOKED_WITH_PROVIDED_ARGUMENTS;
+        if(!isLastParamArray && serialisedPlayerInput.size() + 1 != methodParameterTypes.length) return PlayerCommandError.CommandInvokedWithWrongParams;
+        if(isLastParamArray && serialisedPlayerInput.size() + 1 < methodParameterTypes.length) return PlayerCommandError.CommandInvokedWithWrongParams;
 
-        var expected_types = new ArrayList<String>();
-        var expected_data_types = new ArrayList<Class<?>>();
-        var invoke_args = new ArrayList<>();
-        invoke_args.add(player.getUniqueId());
+        var invokeArgs = new ArrayList<Object>(List.of(player.getUniqueId()));
 
-        for(var x : command_sig){
-            expected_types.add(StaticString.CASE(x, false, toLower));
-            expected_data_types.add(String.class);
-        }
-
-        for(var x : method_param){
-            if(x != UUID.class){
-                expected_types.add(StaticString.CASE(x.getSimpleName(), false, toLower));
-                expected_data_types.add(x);
-            }
-        }
-
-        //ConsoleAPI.LINE();
-        for(var i = 0; i < expected_data_types.size(); i++){
-            var name = expected_types.get(i);
-            var type = expected_data_types.get(i);
-            var player_arg = player_args[i];
-            var all_types = PulseVarAPI.RETURN_AS_ALL_TYPES(player_arg, false, toLower, type.isArray());
-            if(!all_types.contains(name)) return PlayerCommandError.COMMAND_CANNOT_BE_INVOKED_WITH_PROVIDED_ARGUMENTS;
-            var param_test = PulseVariable.VAR_TESTS.get(type);
-            if(param_test == null) return PlayerCommandError.COMMAND_CANNOT_BE_INVOKED_WITH_PROVIDED_ARGUMENTS;
-
-            if(i >= command_sig.size()){
-                if(!type.isArray()){
-                    var converted_arg = param_test.CONVERT_FOR_CONFIG(player_arg);
-                    if(converted_arg == null) return PlayerCommandError.COMMAND_CANNOT_BE_INVOKED_WITH_PROVIDED_ARGUMENTS;
-                    invoke_args.add(converted_arg);
-                }else{
-                    var itemsRemoved = new ArrayList<String>(Arrays.asList(player_args).subList(i, player_args.length));
-                    param_test.CUSTOM_CAST_AND_PLACE(invoke_args, invoke_args.size() - 1, param_test.CONVERT(itemsRemoved), type);
-                }
-            }
+        for(var i = 1; i < methodParameterTypes.length; i++){
+            var methodParamType = methodParameterTypes[i];
+            var playerArg = serialisedPlayerInput.get(i - 1);
+            var paramTest = VariableAPI.RETURN_TEST_FROM_TYPE(methodParamType);
+            if(paramTest == null) return PlayerCommandError.CommandCannotSerialiseThisData;
+            invokeArgs.add(paramTest.DeSerializeData(playerArg));
         }
 
         try {
-            playerCommand.InvokeVoid(method, invoke_args.toArray(new Object[0]));
+            method.invoke(playerCommand, invokeArgs.toArray(new Object[0]));
             return null;
         } catch (InvocationTargetException | IllegalAccessException e) {
             e.printStackTrace();
-            return PlayerCommandError.COMMAND_CANNOT_BE_INVOKED_WITH_PROVIDED_ARGUMENTS;
+            return PlayerCommandError.FirstMethodParamMustBeUUID;
         }
     }
 
-    public List<String> ReturnTabComplete(Player player, String[] args, boolean toHigher, boolean toLower){
+    public List<String> ReturnTabComplete(Player player, String[] args) throws Exception {
         var data = new ArrayList<String>();
 
-        if(!CanPlayerUseCommand(player)){
-            data.add(ChatColor.RED + "Cannot use command!");
-            return data;
-        }
+        if(!CanPlayerUseCommand(player)) return data;
 
-        //PC signature tab complete
-        var command_sig = SignatureBuilder.RETURN_SIGNATURE(method);
-        var method_param = method.getParameterTypes();
-        var lastParam = method_param[method_param.length - 1];
+        var canShowFunctionInTab = !method.isAnnotationPresent(PCHideTab.class);
+        if(method.isAnnotationPresent(PCFunctionHideTab.class) && canShowFunctionInTab){
+            var classMethod = playerCommand.ReturnMethodByName(method.getAnnotation(PCFunctionHideTab.class).value());
+            canShowFunctionInTab = (boolean) classMethod.invoke(playerCommand, player.getUniqueId());
+        }
+        if(!canShowFunctionInTab) return data;
+
+        var player_args = SignatureBuilder.ReturnLivePlayerArguments(args);
 
         if(method.isAnnotationPresent(PCSignature.class)){
-            var args_list = new LinkedList<String>(Arrays.asList(args));
-            args_list.remove("");
             var sig_list = new LinkedList<String>(Arrays.asList(method.getAnnotation(PCSignature.class).value().split("\\.")));
             sig_list.remove("");
-            if(StaticList.B_CONTAINS(args_list, sig_list, args.length, toHigher, toLower) && args.length - 1 < sig_list.size())
-                data.add(StaticString.CASE(sig_list.get(args.length - 1), toHigher, toLower));
+            if(StaticList.B_CONTAINS(player_args, sig_list, args.length) && args.length - 1 < sig_list.size()) data.add(sig_list.get(args.length - 1));
         }
 
-        var param_test_location = args.length - command_sig.size();
+        var methodCommandSignature = SignatureBuilder.ReturnSignature(method);
+        if(player_args.size() < methodCommandSignature.size()) return data;
+        for(var i = 0; i < methodCommandSignature.size(); i++) if(!methodCommandSignature.get(i).equals(player_args.get(i))) return data;
+
+        var serialisedPlayerInput = new ArrayList<String>();
+        for(var i = methodCommandSignature.size(); i < player_args.size(); i++) serialisedPlayerInput.add(player_args.get(i));
+
+        var methodParameterTypes = method.getParameterTypes();
+        var isLastParamArray = methodParameterTypes.length > 1 && methodParameterTypes[methodParameterTypes.length - 1].isArray();
+
+        if(!isLastParamArray && serialisedPlayerInput.size() + 1 > methodParameterTypes.length - 1) return data;
+        if(isLastParamArray && serialisedPlayerInput.size() + 1 < methodParameterTypes.length - 1) return data;
+
+        var param_test_location = player_args.size() - methodCommandSignature.size();
 
         if(method.isAnnotationPresent(PCTabs.class)){
             for(var tab : method.getAnnotation(PCTabs.class).value()){
-                if(tab.pos() == param_test_location){
-                    data.addAll(ConvertTabToList(tab, args, player, param_test_location, method_param.length));
-                }
-
-                if(lastParam.isArray() && tab.pos() + 1 == method_param.length){
-                    data.addAll(ConvertTabToList(tab, args, player, 0, method_param.length));
-                }
+                if(tab.pos() == param_test_location) data.addAll(ConvertTabToList(tab, player_args, player, param_test_location, methodParameterTypes.length));
+                if(isLastParamArray && tab.pos() + 1 == methodParameterTypes.length) data.addAll(ConvertTabToList(tab, player_args, player, 0, methodParameterTypes.length));
             }
         }else if(method.isAnnotationPresent(PCTab.class)){
             var tab = method.getAnnotation(PCTab.class);
-            if(tab.pos() == param_test_location){
-                data.addAll(ConvertTabToList(tab, args, player, param_test_location, method_param.length));
-            }
-
-            if(lastParam.isArray() && tab.pos() + 1 == method_param.length){
-                data.addAll(ConvertTabToList(tab, args, player, 0, method_param.length));
-            }
+            if(tab.pos() == param_test_location) data.addAll(ConvertTabToList(tab, player_args, player, param_test_location, methodParameterTypes.length));
+            if(isLastParamArray && tab.pos() + 1 == methodParameterTypes.length) data.addAll(ConvertTabToList(tab, player_args, player, 0, methodParameterTypes.length));
         }
 
         return data;
     }
 
-    private List<String> ConvertTabToList(PCTab tab, String[] args, Player player, int pos, int numberOfArguments){
+    private List<String> ConvertTabToList(PCTab tab, List<String> args, Player player, int pos, int numberOfArguments) throws Exception {
         var data = new ArrayList<String>();
         if(pos > numberOfArguments) return data;
 
-        if(tab.type() == TabType.Online_Player_Names || tab.type() == TabType.Mixed_Player_Names){
+        if(tab.type() == TabType.Mixed_Player_Names){
             for(var p : Bukkit.getOnlinePlayers()) data.add(p.getName());
-        }
-
-        if(tab.type() == TabType.Offline_Player_Names || tab.type() == TabType.Mixed_Player_Names){
             for(var p : Bukkit.getOfflinePlayers()) data.add(p.getName());
-        }
-
-        if(tab.type() == TabType.Information_From_Function){
+            return data;
+        } else if(tab.type() == TabType.Online_Player_Names ){
+            for(var p : Bukkit.getOnlinePlayers()) data.add(p.getName());
+            return data;
+        } else if(tab.type() == TabType.Offline_Player_Names){
+            for(var p : Bukkit.getOfflinePlayers()) data.add(p.getName());
+            return data;
+        } else if(tab.type() == TabType.Information_From_Function){
             var method = playerCommand.ReturnMethodByName(tab.data());
-            if(method == null) return new ArrayList<>();
-            try { data.addAll((List<String>) method.invoke(playerCommand));
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                data.add("No function");
-                return data;
-            }
-        }
-
-        if(tab.type() == TabType.Stored_Tab_Data_From_Type){
-            var test = PulseVarAPI.RETURN_TEST_FROM_TYPE(tab.data(), false);
-            if(test != null) data.addAll(test.TAB_DATA(new ArrayList<>(), args[args.length - 1]));
-        }
-
-        if(tab.type() == TabType.Pull_Server_Data) {
-            var stored_data = ServerDataAPI.GET(tab.data());
+            var methodData = (List<String>) method.invoke(playerCommand);
+            data.addAll(methodData);
+            return data;
+        } else if(tab.type() == TabType.Stored_Tab_Data_From_Type){
+            var test = VariableAPI.RETURN_TEST_FROM_TYPE(tab.data());
+            if(test != null) data.addAll(test.TabData(new ArrayList<>(), args.get(args.size() - 1)));
+            return data;
+        } else if(tab.type() == TabType.Pull_Server_Data){
+            var stored_data = ServerDataAPI.GET(tab.data(), new ArrayList<>());
             if(stored_data != null) data.addAll((List<String>) stored_data);
-        }
-
-        if(tab.type() == TabType.Pull_Player_Data){
-            var stored_data = PlayerDataAPI.GET(player.getUniqueId(), tab.data());
+            return data;
+        } else if(tab.type() == TabType.Pull_Player_Data){
+            var stored_data = PlayerDataAPI.GET(player.getUniqueId(), tab.data(), new ArrayList<>());
             if(stored_data != null) data.addAll((List<String>) stored_data);
+            return data;
         }
 
         return data;
     }
 
     public boolean CanPlayerUseCommand(Player player){
-        if(!PlayerAPI.GET_TOGGLE_STAT(player, ToggleActions.PlayerCommandSendEvent)) return false;
+        if(!PlayerAPI.CanDoAction(PlayerAction.PlayerCommand, player)) return false;
         if(method.isAnnotationPresent(PCOP.class) && !player.isOp()) return false;
-        if(method.isAnnotationPresent(PCPerm.class))
-            if(!PlayerAPI.TEST_PERMISSIONS(player, method.getAnnotation(PCPerm.class).value())) return false;
-        if(method.isAnnotationPresent(PCWorld.class))
-            if(!player.getWorld().getName().equals(method.getAnnotation(PCWorld.class).value())) return false;
+        if(method.isAnnotationPresent(PCPerm.class)){
+            for(var perm : method.getAnnotation(PCPerm.class).value()) if(!player.hasPermission(perm)) return false;
+        }
+        if(method.isAnnotationPresent(PCWorld.class)){
+            return player.getWorld().getName().equals(method.getAnnotation(PCWorld.class).value());
+        }
         return true;
 
     }

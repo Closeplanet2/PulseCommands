@@ -1,10 +1,14 @@
 package com.pandapulsestudios.pulsecommands.Enums;
 
 public enum PlayerCommandError {
-    COMMAND_SENDER_NOT_PLAYER("Command sender is not a value of player!"),
-    NO_COMMAND_FOUND_FOR_PLAYER_INPUT("Command input does not match any command!"),
-    COMMAND_CANNOT_BE_INVOKED_WITH_PROVIDED_ARGUMENTS("Command cant be used with provided args!"),
-    PLAYER_COMMANDS_LOCKED("This Player Commands Have Been Locked!");
+    PlayerCommandsLocked("This Player Commands Have Been Locked!"),
+    FirstMethodParamMustBeUUID("The first param in a PCMethod must be UUID.class"),
+    PlayerInputDifferentCommandSing("The input the player has used is different from command signature"),
+    CommandInvokedWithWrongParams("The provided arguments don't work with command methods!"),
+    CommandCannotSerialiseThisData("Not all vairables in the command can be serialis3ed with the given data! Add a custom variable test for custom data type!"),
+    MustBePlayerTOUseCommand("The command sender must be a instance of player to use this command"),
+    NoMethodOrCommandFound("No command method that matches the signature");
+
 
     public final String error;
     private PlayerCommandError(String error) {

@@ -21,8 +21,18 @@ import java.util.zip.ZipInputStream;
 //TODO Create console command
 
 public class PulseCommands extends JavaPlugin {
-    public static void Register(JavaPlugin javaPlugin, String path) throws Exception {
-        var full_data = ReturnAllClasses(javaPlugin, path);
+
+    public static void RegisterRaw(JavaPlugin javaPlugin) {
+        try {
+            Register(javaPlugin);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public static void Register(JavaPlugin javaPlugin) throws Exception {
+        var full_data = ReturnAllClasses(javaPlugin, javaPlugin.getClass().getPackageName());
         for(var panda_interface : full_data.keySet()){
             if(panda_interface == PCCommand.class) RegisterCommand(full_data.get(panda_interface), javaPlugin);
         }

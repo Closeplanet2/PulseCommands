@@ -6,7 +6,7 @@
 
     <groupId>com.pandapulsestudios</groupId>
     <artifactId>pulsecommands</artifactId>
-    <version>1.0.0-a</version>
+    <version>1.1.1-a</version>
     <name>PulseConfigCore</name>
 
     <distributionManagement>
@@ -28,10 +28,6 @@
             <id>pulsecore</id>
             <url>https://maven.pkg.github.com/closeplanet2/PulseCore</url>
         </repository>
-        <repository>
-            <id>pulsevariable</id>
-            <url>https://maven.pkg.github.com/closeplanet2/PulseVariable</url>
-        </repository>
     </repositories>
 
     <dependencies>
@@ -43,12 +39,7 @@
         <dependency>
             <groupId>com.pandapulsestudios</groupId>
             <artifactId>pulsecore</artifactId>
-            <version>1.0.0-a</version>
-        </dependency>
-        <dependency>
-            <groupId>com.pandapulsestudios</groupId>
-            <artifactId>pulsevariable</artifactId>
-            <version>1.0.0-a</version>
+            <version>1.1.1-a</version>
         </dependency>
     </dependencies>
 </project>
