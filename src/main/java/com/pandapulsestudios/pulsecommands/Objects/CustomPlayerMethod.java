@@ -4,13 +4,17 @@ import com.pandapulsestudios.pulsecommands.Enums.PlayerCommandError;
 import com.pandapulsestudios.pulsecommands.Enums.TabType;
 import com.pandapulsestudios.pulsecommands.Interface.*;
 import com.pandapulsestudios.pulsecommands.PlayerCommand;
+import com.pandapulsestudios.pulsecommands.PulseCommands;
 import com.pandapulsestudios.pulsecommands.SignatureBuilder;
 import com.pandapulsestudios.pulsecommands.Static.StaticList;
 import com.pandapulsestudios.pulsecore.Data.API.PlayerDataAPI;
 import com.pandapulsestudios.pulsecore.Data.API.ServerDataAPI;
 import com.pandapulsestudios.pulsecore.Data.API.VariableAPI;
+import com.pandapulsestudios.pulsecore.Java.PluginAPI;
+import com.pandapulsestudios.pulsecore.Java.SoftDependPlugins;
 import com.pandapulsestudios.pulsecore.Player.Enums.PlayerAction;
 import com.pandapulsestudios.pulsecore.Player.PlayerAPI;
+import com.pandapulsestudios.pulsecore._External.WorldGuard.WorldGuardAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -130,8 +134,6 @@ public class CustomPlayerMethod {
             data.addAll(methodData);
             return data;
         } else if(tab.type() == TabType.Stored_Tab_Data_From_Type){
-            var test = VariableAPI.RETURN_TEST_FROM_TYPE(tab.data());
-            if(test != null) data.addAll(test.TabData(new ArrayList<>(), args.get(args.size() - 1)));
             return data;
         } else if(tab.type() == TabType.Pull_Server_Data){
             var stored_data = ServerDataAPI.GET(tab.data(), new ArrayList<>());
@@ -149,12 +151,28 @@ public class CustomPlayerMethod {
     public boolean CanPlayerUseCommand(Player player){
         if(!PlayerAPI.CanDoAction(PlayerAction.PlayerCommand, player)) return false;
         if(method.isAnnotationPresent(PCOP.class) && !player.isOp()) return false;
+
         if(method.isAnnotationPresent(PCPerm.class)){
-            for(var perm : method.getAnnotation(PCPerm.class).value()) if(!player.hasPermission(perm)) return false;
+            var values = method.getAnnotation(PCPerm.class).value();
+            for(var perm : values){
+                if(!player.hasPermission(perm)) return false;
+            }
         }
+
         if(method.isAnnotationPresent(PCWorld.class)){
-            return player.getWorld().getName().equals(method.getAnnotation(PCWorld.class).value());
+            var values = method.getAnnotation(PCWorld.class).value();
+            if(values.length > 0){
+                if(!Arrays.stream(values).toList().contains(player.getWorld().getName())) return false;
+            }
         }
+
+        if(method.isAnnotationPresent(PCRegion.class) && PluginAPI.IsPluginInstalled(PulseCommands.Instance, SoftDependPlugins.WorldGuard)){
+            var values = method.getAnnotation(PCRegion.class).value();
+            for(var region : values){
+                if(!WorldGuardAPI.REGION.IsLocationInRegion(player.getWorld(), region, player.getLocation())) return false;
+            }
+        }
+
         return true;
 
     }

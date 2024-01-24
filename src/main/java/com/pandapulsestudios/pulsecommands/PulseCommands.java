@@ -22,6 +22,14 @@ import java.util.zip.ZipInputStream;
 
 public class PulseCommands extends JavaPlugin {
 
+    public static PulseCommands Instance;
+
+
+    @Override
+    public void onEnable() {
+        Instance = this;
+    }
+
     public static void RegisterRaw(JavaPlugin javaPlugin) {
         try {
             Register(javaPlugin);
@@ -29,7 +37,6 @@ public class PulseCommands extends JavaPlugin {
             throw new RuntimeException(e);
         }
     }
-
 
     public static void Register(JavaPlugin javaPlugin) throws Exception {
         var full_data = ReturnAllClasses(javaPlugin, javaPlugin.getClass().getPackageName());
