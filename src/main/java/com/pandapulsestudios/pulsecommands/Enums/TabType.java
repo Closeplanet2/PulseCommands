@@ -7,5 +7,6 @@ public enum TabType {
     Information_From_Function,
     Stored_Tab_Data_From_Type,
     Pull_Player_Data,
-    Pull_Server_Data
+    Pull_Server_Data,
+    Pure_Data
 }

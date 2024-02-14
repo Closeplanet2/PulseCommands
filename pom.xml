@@ -6,7 +6,7 @@
 
     <groupId>com.pandapulsestudios</groupId>
     <artifactId>pulsecommands</artifactId>
-    <version>1.1.2-a</version>
+    <version>1.1.3-a</version>
     <name>PulseConfigCore</name>
 
     <distributionManagement>
@@ -39,7 +39,7 @@
         <dependency>
             <groupId>com.pandapulsestudios</groupId>
             <artifactId>pulsecore</artifactId>
-            <version>1.1.9-a</version>
+            <version>1.1.12-a</version>
         </dependency>
     </dependencies>
 </project>

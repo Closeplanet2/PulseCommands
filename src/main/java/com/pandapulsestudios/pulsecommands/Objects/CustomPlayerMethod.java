@@ -9,6 +9,7 @@ import com.pandapulsestudios.pulsecommands.SignatureBuilder;
 import com.pandapulsestudios.pulsecommands.Static.StaticList;
 import com.pandapulsestudios.pulsecore.Data.API.PlayerDataAPI;
 import com.pandapulsestudios.pulsecore.Data.API.ServerDataAPI;
+import com.pandapulsestudios.pulsecore.Data.API.UUIDDataAPI;
 import com.pandapulsestudios.pulsecore.Data.API.VariableAPI;
 import com.pandapulsestudios.pulsecore.Java.PluginAPI;
 import com.pandapulsestudios.pulsecore.Java.SoftDependPlugins;
@@ -49,11 +50,16 @@ public class CustomPlayerMethod {
         var invokeArgs = new ArrayList<Object>(List.of(player.getUniqueId()));
 
         for(var i = 1; i < methodParameterTypes.length; i++){
-            var methodParamType = methodParameterTypes[i];
-            var playerArg = serialisedPlayerInput.get(i - 1);
-            var paramTest = VariableAPI.RETURN_TEST_FROM_TYPE(methodParamType);
-            if(paramTest == null) return PlayerCommandError.CommandCannotSerialiseThisData;
-            invokeArgs.add(paramTest.DeSerializeData(playerArg));
+            if(!isLastParamArray){
+                var methodParamType = methodParameterTypes[i];
+                var playerArg = serialisedPlayerInput.get(i - 1);
+                var paramTest = VariableAPI.RETURN_TEST_FROM_TYPE(methodParamType);
+                if(paramTest == null) return PlayerCommandError.CommandCannotSerialiseThisData;
+                invokeArgs.add(paramTest.DeSerializeData(playerArg));
+            }else if(i == methodParameterTypes.length - 1){
+                var data = new ArrayList<String>(serialisedPlayerInput.subList(methodParameterTypes.length - 2, serialisedPlayerInput.size()));
+                invokeArgs.add(data.toArray(new String[0]));
+            }
         }
 
         try {
@@ -102,19 +108,19 @@ public class CustomPlayerMethod {
 
         if(method.isAnnotationPresent(PCTabs.class)){
             for(var tab : method.getAnnotation(PCTabs.class).value()){
-                if(tab.pos() == param_test_location) data.addAll(ConvertTabToList(tab, player_args, player, param_test_location, methodParameterTypes.length));
-                if(isLastParamArray && tab.pos() + 1 == methodParameterTypes.length) data.addAll(ConvertTabToList(tab, player_args, player, 0, methodParameterTypes.length));
+                if(tab.pos() == param_test_location) data.addAll(ConvertTabToList(tab, player_args, player, param_test_location, methodParameterTypes.length, args[args.length - 1]));
+                if(isLastParamArray && tab.pos() + 1 == methodParameterTypes.length) data.addAll(ConvertTabToList(tab, player_args, player, 0, methodParameterTypes.length, args[args.length - 1]));
             }
         }else if(method.isAnnotationPresent(PCTab.class)){
             var tab = method.getAnnotation(PCTab.class);
-            if(tab.pos() == param_test_location) data.addAll(ConvertTabToList(tab, player_args, player, param_test_location, methodParameterTypes.length));
-            if(isLastParamArray && tab.pos() + 1 == methodParameterTypes.length) data.addAll(ConvertTabToList(tab, player_args, player, 0, methodParameterTypes.length));
+            if(tab.pos() == param_test_location) data.addAll(ConvertTabToList(tab, player_args, player, param_test_location, methodParameterTypes.length, args[args.length - 1]));
+            if(isLastParamArray && tab.pos() + 1 == methodParameterTypes.length) data.addAll(ConvertTabToList(tab, player_args, player, 0, methodParameterTypes.length, args[args.length - 1]));
         }
 
         return data;
     }
 
-    private List<String> ConvertTabToList(PCTab tab, List<String> args, Player player, int pos, int numberOfArguments) throws Exception {
+    private List<String> ConvertTabToList(PCTab tab, List<String> args, Player player, int pos, int numberOfArguments, String current_input) throws Exception {
         var data = new ArrayList<String>();
         if(pos > numberOfArguments) return data;
 
@@ -130,7 +136,7 @@ public class CustomPlayerMethod {
             return data;
         } else if(tab.type() == TabType.Information_From_Function){
             var method = playerCommand.ReturnMethodByName(tab.data());
-            var methodData = (List<String>) method.invoke(playerCommand);
+            var methodData = (List<String>) method.invoke(playerCommand, current_input);
             data.addAll(methodData);
             return data;
         } else if(tab.type() == TabType.Stored_Tab_Data_From_Type){
@@ -140,8 +146,11 @@ public class CustomPlayerMethod {
             if(stored_data != null) data.addAll((List<String>) stored_data);
             return data;
         } else if(tab.type() == TabType.Pull_Player_Data){
-            var stored_data = PlayerDataAPI.GET(player.getUniqueId(), tab.data(), new ArrayList<>());
+            var stored_data = UUIDDataAPI.GET(player.getUniqueId(), tab.data(), new ArrayList<>());
             if(stored_data != null) data.addAll((List<String>) stored_data);
+            return data;
+        } else if(tab.type() == TabType.Pure_Data){
+            data.add(tab.data());
             return data;
         }
 
