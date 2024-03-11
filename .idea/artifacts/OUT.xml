@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
   <artifact type="jar" name="OUT">
-    <output-path>$PROJECT_DIR$/../../_Servers/Server2/plugins</output-path>
+    <output-path>$PROJECT_DIR$/../../_Servers/WorldVisual/plugins</output-path>
     <root id="archive" name="pulsecommands.jar">
       <element id="module-output" name="pulsecommands" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/logging/log4j/log4j-core/2.19.0/log4j-core-2.19.0.jar" path-in-jar="/" />

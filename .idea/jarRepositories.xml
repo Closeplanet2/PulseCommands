@@ -4,6 +4,11 @@
     <remote-repository>
       <option name="id" value="github" />
       <option name="name" value="github" />
+      <option name="url" value="https://maven.pkg.github.com/closeplanet2/DialogueAndQuest" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="github" />
+      <option name="name" value="github" />
       <option name="url" value="https://maven.pkg.github.com/closeplanet2/PulseMatchmaking" />
     </remote-repository>
     <remote-repository>
