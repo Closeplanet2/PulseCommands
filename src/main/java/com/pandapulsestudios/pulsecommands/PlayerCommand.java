@@ -38,7 +38,7 @@ public abstract class PlayerCommand extends BukkitCommand {
     @Override
     public boolean execute(CommandSender commandSender, String s, String[] args) {
         if(!(commandSender instanceof Player)){
-            if(debugErrors) ChatAPI.SendChat(PlayerCommandError.MustBePlayerTOUseCommand.error, MessageType.ConsoleMessageError, true, null);
+            if(debugErrors) ChatAPI.chatBuilder().SendMessage(PlayerCommandError.MustBePlayerTOUseCommand.error);
             return false;
         }
 
@@ -46,10 +46,10 @@ public abstract class PlayerCommand extends BukkitCommand {
         for(var cm : methodArray){
             var invoke = cm.TryAndInvokeMethod(player, args);
             if(invoke == null) return true;
-            else if(debugErrors) ChatAPI.SendChat(invoke.error, MessageType.ConsoleMessageError, true, null);
+            else if(debugErrors) ChatAPI.chatBuilder().SendMessage(invoke.error);
         }
 
-        if(debugErrors) ChatAPI.SendChat(PlayerCommandError.NoMethodOrCommandFound.error, MessageType.ConsoleMessageError, true, null);
+        if(debugErrors) ChatAPI.chatBuilder().SendMessage(PlayerCommandError.NoMethodOrCommandFound.error);
         return false;
     }
 

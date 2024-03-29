@@ -7,14 +7,13 @@ import com.pandapulsestudios.pulsecommands.PlayerCommand;
 import com.pandapulsestudios.pulsecommands.PulseCommands;
 import com.pandapulsestudios.pulsecommands.SignatureBuilder;
 import com.pandapulsestudios.pulsecommands.Static.StaticList;
-import com.pandapulsestudios.pulsecore.Data.API.PlayerDataAPI;
 import com.pandapulsestudios.pulsecore.Data.API.ServerDataAPI;
 import com.pandapulsestudios.pulsecore.Data.API.UUIDDataAPI;
 import com.pandapulsestudios.pulsecore.Data.API.VariableAPI;
 import com.pandapulsestudios.pulsecore.Java.PluginAPI;
 import com.pandapulsestudios.pulsecore.Java.SoftDependPlugins;
-import com.pandapulsestudios.pulsecore.Player.Enums.PlayerAction;
 import com.pandapulsestudios.pulsecore.Player.PlayerAPI;
+import com.pandapulsestudios.pulsecore.Player.PlayerAction;
 import com.pandapulsestudios.pulsecore._External.WorldGuard.WorldGuardAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -142,11 +141,11 @@ public class CustomPlayerMethod {
         } else if(tab.type() == TabType.Stored_Tab_Data_From_Type){
             return data;
         } else if(tab.type() == TabType.Pull_Server_Data){
-            var stored_data = ServerDataAPI.GET(tab.data(), new ArrayList<>());
+            var stored_data = ServerDataAPI.Get(tab.data(), new ArrayList<>());
             if(stored_data != null) data.addAll((List<String>) stored_data);
             return data;
         } else if(tab.type() == TabType.Pull_Player_Data){
-            var stored_data = UUIDDataAPI.GET(player.getUniqueId(), tab.data(), new ArrayList<>());
+            var stored_data = UUIDDataAPI.Get(player.getUniqueId(), tab.data(), new ArrayList<>());
             if(stored_data != null) data.addAll((List<String>) stored_data);
             return data;
         } else if(tab.type() == TabType.Pure_Data){
@@ -158,7 +157,7 @@ public class CustomPlayerMethod {
     }
 
     public boolean CanPlayerUseCommand(Player player){
-        if(!PlayerAPI.CanDoAction(PlayerAction.PlayerCommand, player)) return false;
+        if(!PlayerAPI.CanPlayerAction(PlayerAction.PlayerCommand, player)) return false;
         if(method.isAnnotationPresent(PCOP.class) && !player.isOp()) return false;
 
         if(method.isAnnotationPresent(PCPerm.class)){
