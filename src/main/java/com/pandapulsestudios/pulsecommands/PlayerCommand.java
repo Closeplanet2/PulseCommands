@@ -50,6 +50,7 @@ public abstract class PlayerCommand extends BukkitCommand {
         }
 
         if(debugErrors) ChatAPI.chatBuilder().SendMessage(PlayerCommandError.NoMethodOrCommandFound.error);
+        NoMethodFound(commandSender, s, args);
         return false;
     }
 
@@ -68,5 +69,5 @@ public abstract class PlayerCommand extends BukkitCommand {
     public Method ReturnMethodByName(String methodName){
        return liveData.getOrDefault(methodName, null);
     }
-
+    public abstract void NoMethodFound(CommandSender commandSender, String s, String[] args);
 }

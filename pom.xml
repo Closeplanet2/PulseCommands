@@ -6,7 +6,7 @@
 
     <groupId>com.pandapulsestudios</groupId>
     <artifactId>pulsecommands</artifactId>
-    <version>1.1.4-a</version>
+    <version>1.1.9-a</version>
     <name>PulseConfigCore</name>
 
     <distributionManagement>
@@ -23,6 +23,44 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>net.md-5</groupId>
+                <artifactId>specialsource-maven-plugin</artifactId>
+                <version>1.2.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>remap</goal>
+                        </goals>
+                        <id>remap-obf</id>
+                        <configuration>
+                            <srgIn>org.spigotmc:minecraft-server:1.20.4-R0.1-SNAPSHOT:txt:maps-mojang</srgIn>
+                            <reverse>true</reverse>
+                            <remappedDependencies>org.spigotmc:spigot:1.20.4-R0.1-SNAPSHOT:jar:remapped-mojang</remappedDependencies>
+                            <remappedArtifactAttached>true</remappedArtifactAttached>
+                            <remappedClassifierName>remapped-obf</remappedClassifierName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>remap</goal>
+                        </goals>
+                        <id>remap-spigot</id>
+                        <configuration>
+                            <inputFile>${project.build.directory}/${project.artifactId}-${project.version}-remapped-obf.jar</inputFile>
+                            <srgIn>org.spigotmc:minecraft-server:1.20.4-R0.1-SNAPSHOT:csrg:maps-spigot</srgIn>
+                            <remappedDependencies>org.spigotmc:spigot:1.20.4-R0.1-SNAPSHOT:jar:remapped-obf</remappedDependencies>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <repositories>
         <repository>
             <id>pulsecore</id>
@@ -34,12 +72,14 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.20.1-R0.1-SNAPSHOT</version>
+            <version>1.20.4-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+            <classifier>remapped-mojang</classifier>
         </dependency>
         <dependency>
             <groupId>com.pandapulsestudios</groupId>
             <artifactId>pulsecore</artifactId>
-            <version>1.2.1-a</version>
+            <version>1.2.5-a</version>
         </dependency>
     </dependencies>
 </project>

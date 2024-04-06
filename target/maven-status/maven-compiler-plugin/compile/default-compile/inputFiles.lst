@@ -1,3 +1,4 @@
+D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Interface\PCAutoTab.java
 D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Interface\PCFunctionHideTab.java
 D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Interface\PCWorld.java
 D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Enums\PlayerCommandError.java
@@ -5,11 +6,9 @@ D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pan
 D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Interface\PCTabs.java
 D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\PlayerCommand.java
 D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Interface\PCSignature.java
-D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Interface\PCCommand.java
 D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Interface\PCMethod.java
 D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Interface\PCPerm.java
 D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Enums\TabType.java
-D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\SignatureBuilder.java
 D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\PulseCommands.java
 D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Interface\PCRegion.java
 D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Objects\CustomPlayerMethod.java
@@ -17,3 +16,4 @@ D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pan
 D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Interface\PCOP.java
 D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Interface\PCTab.java
 D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Static\StaticList.java
+D:\Coding Portfolio\Spigot Plugins\PulseCore\PulseCommands\src\main\java\com\pandapulsestudios\pulsecommands\Interface\PCAutoTabs.java
