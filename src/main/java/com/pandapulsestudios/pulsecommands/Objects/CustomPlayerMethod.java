@@ -62,17 +62,15 @@ public class CustomPlayerMethod {
             }
         }
 
-        for(var i = 0; i < invokeArgs.size(); i++){
-            var invokeArg = invokeArgs.get(i);
-            var expecteArg = methodParameterTypes[i];
-            player.sendMessage(invokeArg.getClass().getSimpleName() + ":" + expecteArg.getSimpleName());
-        }
-
         try {
+            for(var i = 0 ; i < method.getParameterTypes().length; i++){
+                var parmType = method.getParameterTypes()[i];
+                var paramTest = VariableAPI.RETURN_TEST_FROM_TYPE(parmType);
+                if(paramTest != null && !paramTest.IsType(invokeArgs.get(i))) return PlayerCommandError.NoMethodOrCommandFound;
+            }
             method.invoke(playerCommand, invokeArgs.toArray(new Object[0]));
             return null;
         } catch (InvocationTargetException | IllegalAccessException e) {
-            e.printStackTrace();
             return PlayerCommandError.FirstMethodParamMustBeUUID;
         }
     }
@@ -107,7 +105,6 @@ public class CustomPlayerMethod {
             if(VariableAPI.RETURN_TEST_FROM_TYPE(UUID.class).IsType(playerArgument)) return Bukkit.getOfflinePlayer(UUID.fromString(playerArgument));
             else return Bukkit.getOfflinePlayer(playerArgument);
         }
-
         var paramTest = VariableAPI.RETURN_TEST_FROM_TYPE(methodParamType);
         return paramTest == null ? playerArgument : paramTest.DeSerializeData(playerArgument);
     }
@@ -190,12 +187,12 @@ public class CustomPlayerMethod {
         var data = new ArrayList<String>();
         if(parameterType == OfflinePlayer.class || parameterType == CraftOfflinePlayer.class){
             for(var p : Bukkit.getOfflinePlayers()){
-                if(p.getName().contains(currentInput)) data.add(p.getUniqueId().toString());
+                if(p.getName().toLowerCase().contains(currentInput.toLowerCase())) data.add(p.getUniqueId().toString());
             }
             if(data.isEmpty()) data.add(ChatColor.RED + "[NO PLAYER FOUND]");
         }else if(parameterType == Player.class || parameterType == CraftPlayer.class){
             for(var p : Bukkit.getOnlinePlayers()){
-                if(p.getName().contains(currentInput)) data.add(p.getUniqueId().toString());
+                if(p.getName().toLowerCase().contains(currentInput.toLowerCase())) data.add(p.getUniqueId().toString());
             }
             if(data.isEmpty()) data.add(ChatColor.RED + "[NO PLAYER FOUND]");
         }
