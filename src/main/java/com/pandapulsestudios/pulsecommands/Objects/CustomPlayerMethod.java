@@ -40,7 +40,10 @@ public class CustomPlayerMethod {
 
         var commandSignature = new ArrayList<String>(Arrays.asList(method.getAnnotation(PCSignature.class).value()));
         if (player_args.length < commandSignature.size()) return PlayerCommandError.PlayerInputDifferentCommandSing;
-        for (var i = 0; i < commandSignature.size(); i++) if (!commandSignature.get(i).equals(player_args[i])) return PlayerCommandError.PlayerInputDifferentCommandSing;
+
+        for (var i = 0; i < commandSignature.size(); i++){
+            if (!commandSignature.get(i).equals(player_args[i])) return PlayerCommandError.PlayerInputDifferentCommandSing;
+        }
 
         var serialisedPlayerInput = new ArrayList<String>(Arrays.asList(player_args).subList(commandSignature.size(), player_args.length));
         var methodParameterTypes = method.getParameterTypes();
@@ -62,16 +65,17 @@ public class CustomPlayerMethod {
             }
         }
 
+        for(var i = 0 ; i < method.getParameterTypes().length; i++){
+            var parmType = method.getParameterTypes()[i];
+            var paramTest = VariableAPI.RETURN_TEST_FROM_TYPE(parmType);
+            if(paramTest != null && !paramTest.IsType(invokeArgs.get(i))) return PlayerCommandError.NoMethodOrCommandFound;
+        }
+
         try {
-            for(var i = 0 ; i < method.getParameterTypes().length; i++){
-                var parmType = method.getParameterTypes()[i];
-                var paramTest = VariableAPI.RETURN_TEST_FROM_TYPE(parmType);
-                if(paramTest != null && !paramTest.IsType(invokeArgs.get(i))) return PlayerCommandError.NoMethodOrCommandFound;
-            }
             method.invoke(playerCommand, invokeArgs.toArray(new Object[0]));
             return null;
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            return PlayerCommandError.FirstMethodParamMustBeUUID;
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -111,18 +115,20 @@ public class CustomPlayerMethod {
 
     public List<String> ReturnTabComplete(Player player, String[] args) throws InvocationTargetException, IllegalAccessException {
         if(!CanPlayerUseCommand(player)) return Arrays.asList(new String[]{ChatColor.RED + "[YOU CANNOT USE THIS COMMAND]"});
-        var data = new ArrayList<String>();
         var argumentIndex = args.length - 1;
+        var data = new ArrayList<String>();
 
         var canShowFunctionInTab = !method.isAnnotationPresent(PCHideTab.class);
         if(method.isAnnotationPresent(PCFunctionHideTab.class) && canShowFunctionInTab){
             var classMethod = playerCommand.ReturnMethodByName(method.getAnnotation(PCFunctionHideTab.class).value());
             canShowFunctionInTab = (boolean) classMethod.invoke(playerCommand, player.getUniqueId());
         }
-        if(!canShowFunctionInTab) return data;
+        if(!canShowFunctionInTab) return new ArrayList<String>();
+
 
         var livePlayerArgs = new ArrayList<String>(Arrays.asList(args).subList(0, argumentIndex));
         var commandSignature = new ArrayList<String>(Arrays.asList(method.getAnnotation(PCSignature.class).value()));
+
         if(argumentIndex < commandSignature.size()){
             var lastArgumentIndex = argumentIndex - 1;
             if(lastArgumentIndex >= 0){
@@ -133,19 +139,21 @@ public class CustomPlayerMethod {
             data.add(commandSignature.get(argumentIndex));
         }
 
-        if(args.length <= commandSignature.size()) return data;
+        for(var i = 0; i < commandSignature.size(); i++){
+            var commandSig = commandSignature.get(i);
+            var playerArg = i < livePlayerArgs.size() ? livePlayerArgs.get(i) : null;
+            if(!commandSig.equalsIgnoreCase(playerArg)) return data;
+        }
 
         var storedMethodParameterTypes =  method.getParameterTypes();
         var isLastParamArray = storedMethodParameterTypes[storedMethodParameterTypes.length - 1].isArray();
         var testLocation = args.length - commandSignature.size();
-
         if(!isLastParamArray && testLocation >= storedMethodParameterTypes.length) return data;
         var parameterType = testLocation >= storedMethodParameterTypes.length ? storedMethodParameterTypes[storedMethodParameterTypes.length - 1] : storedMethodParameterTypes[testLocation];
 
         if(method.isAnnotationPresent(PCAutoTabs.class)){
             for(var pcAutoTab : method.getAnnotation(PCAutoTabs.class).value()) data.addAll(ConvertPCAutoTab(pcAutoTab, testLocation, parameterType, storedMethodParameterTypes.length, args[args.length - 1]));
-        }
-        else if(method.isAnnotationPresent(PCAutoTab.class)){
+        }else if(method.isAnnotationPresent(PCAutoTab.class)){
             data.addAll(ConvertPCAutoTab(method.getAnnotation(PCAutoTab.class), testLocation, parameterType, storedMethodParameterTypes.length, args[args.length - 1]));
         }
 
