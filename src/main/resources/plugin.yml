@@ -1,5 +1,5 @@
 name: PulseCommands
-version: 1.1.10-a
+version: 2.0.1
 main: com.pandapulsestudios.pulsecommands.PulseCommands
 authors: [Closeplanet2, PandaPulseStudios]
 depend: [PulseCore]

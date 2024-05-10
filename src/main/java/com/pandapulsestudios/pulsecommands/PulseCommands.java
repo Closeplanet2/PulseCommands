@@ -1,7 +1,7 @@
 package com.pandapulsestudios.pulsecommands;
 
 import com.pandapulsestudios.pulsecommands.PlayerCommand;
-import com.pandapulsestudios.pulsecore.Java.JavaAPI;
+import com.pandapulsestudios.pulsecore.JavaAPI.API.JavaAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandMap;
